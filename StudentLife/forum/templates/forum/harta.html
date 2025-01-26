@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Harta Globală a Postărilor</title>
+    <!-- Script Google Maps -->
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}"></script>
+    <style>
+        #map {
+            height: 600px;
+            width: 100%;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Harta Globală a Postărilor</h1>
+    <div id="map"></div>
+
+    <script>
+        // Initializam harta
+        function initMap() {
+            const centrul = { lat: 47.156944, lng: 27.590278 }; // Coordonatele pentru Iasi
+            const map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 10,
+                center: centrul,
+            });
+
+            // Adaugam marker-ele pentru fiecare locatie
+            const topicuri = JSON.parse('{{ topicuri|safe|escapejs }}');
+            topicuri.forEach(topic => {
+                const marker = new google.maps.Marker({
+                    position: { lat: parseFloat(topic.latitudine), lng: parseFloat(topic.longitudine) },
+                    map: map,
+                    title: topic.titlu,
+                });
+
+                // Informatii suplimentare la clic pe marker
+                const infoWindow = new google.maps.InfoWindow({
+                    content: `<h4>${topic.titlu}</h4><p>${topic.locatie}</p>`,
+                });
+
+                marker.addListener("click", () => {
+                    infoWindow.open(map, marker);
+                });
+            });
+        }
+
+        // Apelam functia cand pagina se incarca
+        window.onload = initMap;
+    </script>
+</body>
+</html>
+tml>

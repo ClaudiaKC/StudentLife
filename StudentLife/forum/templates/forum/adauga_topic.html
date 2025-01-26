@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adaugă o Postare</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Fundal video */
+        .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .video-background video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .form-container {
+            position: relative;
+            z-index: 1;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            max-width: 800px;
+            margin: 2rem auto;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        #map {
+            width: 100%;
+            height: 400px;
+            border-radius: 10px;
+            margin-top: 1rem;
+        }
+
+        button {
+            background-color: #ff6347;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #ff4500;
+        }
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDL9Wp5goX8nTk44pZ5uwo_cMAcCbC1ax0&libraries=places&callback=initMap" async defer></script>
+    <script>
+        let map, marker, geocoder;
+
+        function initMap() {
+            const initialLocation = { lat: 47.156944, lng: 27.590278 }; // Centru Iasi
+
+            map = new google.maps.Map(document.getElementById("map"), {
+                center: initialLocation,
+                zoom: 13,
+            });
+
+            marker = new google.maps.Marker({
+                position: initialLocation,
+                map: map,
+                draggable: true,
+            });
+
+            geocoder = new google.maps.Geocoder();
+
+            // Actualizam campurile ascunse si locatia cand marker-ul este mutat
+            google.maps.event.addListener(marker, 'dragend', function () {
+                const position = marker.getPosition();
+                document.getElementById("id_latitudine").value = position.lat();
+                document.getElementById("id_longitudine").value = position.lng();
+
+                // Folosim reverse geocoding pentru a obtine numele locatiei
+                geocodePosition(position);
+            });
+
+            // Setam pozitia initiala
+            const initialPosition = marker.getPosition();
+            document.getElementById("id_latitudine").value = initialPosition.lat();
+            document.getElementById("id_longitudine").value = initialPosition.lng();
+            geocodePosition(initialPosition);
+        }
+
+        function geocodePosition(position) {
+            geocoder.geocode({ location: position }, (results, status) => {
+                if (status === "OK" && results[0]) {
+                    document.getElementById("id_locatie").value = results[0].formatted_address;
+                } else {
+                    console.error("Geocoding failed: " + status);
+                    document.getElementById("id_locatie").value = "Locație necunoscută";
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+    <!-- Fundal video -->
+    <div class="video-background">
+        <video autoplay loop muted>
+            <source src="{% static 'videos/china-town.mp4' %}" type="video/mp4">
+            Browser-ul tău nu suportă video-ul de fundal.
+        </video>
+    </div>
+
+    <!-- Formularul pentru adaugarea unui topic -->
+    <div class="form-container">
+        <h1>Adaugă o Postare</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+                {{ form.titlu.label_tag }}
+                {{ form.titlu }}
+            </div>
+            <div class="mb-3">
+                {{ form.continut.label_tag }}
+                {{ form.continut }}
+            </div>
+            <div class="mb-3">
+                {{ form.locatie.label_tag }}
+                {{ form.locatie }}
+            </div>
+            <!-- Campuri ascunse pentru latitudine si longitudine -->
+            <input type="hidden" id="id_latitudine" name="latitudine">
+            <input type="hidden" id="id_longitudine" name="longitudine">
+            <div id="map"></div>
+            <button type="submit" class="btn btn-danger w-100 mt-3">Publică Postarea</button>
+        </form>
+    </div>
+</body>
+</html>

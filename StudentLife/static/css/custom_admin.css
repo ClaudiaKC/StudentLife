@@ -1,0 +1,22 @@
+/**** Personalizare stiluri admin ****/
+body {
+    background-color: #1A1A1A;
+    color: #FFFFFF;
+}
+
+.navbar {
+    background-color: #000000;
+    border-bottom: 2px solid #6A0DAD;
+}
+
+h1, h2, h3 {
+    color: #6A0DAD;
+}
+
+a {
+    color: #6A0DAD;
+}
+
+a:hover {
+    color: #B19CD9;
+}

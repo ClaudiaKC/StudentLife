@@ -1,0 +1,173 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalii Topic</title>
+    <style>
+        /* Stiluri generale */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .video-background video {
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1;
+        }
+
+        .content {
+            position: relative;
+            padding: 2rem;
+        }
+
+        .comments {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 8px;
+        }
+
+        .comments input,
+        .comments textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 0.5rem 0;
+            border-radius: 5px;
+            border: none;
+        }
+
+        .comments button {
+            padding: 10px 15px;
+            border: none;
+            background-color: #ff6347;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .comments button:hover {
+            background-color: #ff4500;
+        }
+
+        .comment-list {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+        }
+
+        .comment {
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .comment p {
+            margin: 0.2rem 0;
+        }
+
+        #map {
+            height: 400px;
+            width: 100%;
+            border-radius: 10px;
+            margin-top: 1rem;
+        }
+    </style>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDL9Wp5goX8nTk44pZ5uwo_cMAcCbC1ax0"></script>
+</head>
+<body>
+    <!-- Fundal video -->
+    <div class="video-background">
+        <video autoplay loop muted>
+            <source src="{% static 'videos/earth-space.mp4' %}" type="video/mp4">
+            Browser-ul tău nu suportă video de fundal.
+        </video>
+    </div>
+
+    <!-- Continut -->
+    <div class="content">
+        <h1>{{ topic.titlu }}</h1>
+        <p><strong>Descriere:</strong> {{ topic.continut }}</p>
+        <p><strong>Locație:</strong> {{ topic.locatie }}</p>
+        <p><strong>Autor:</strong> {{ topic.autor }}</p>
+        <p><strong>Data:</strong> {{ topic.data_crearii }}</p>
+
+        <!-- Lista comentarii -->
+        <h2>Comentarii</h2>
+        <div class="comment-list">
+            {% for comentariu in comentarii %}
+                <div class="comment">
+                    <p><strong>{{ comentariu.autor.username }}</strong> - {{ comentariu.data_crearii|date:"d M Y, H:i" }}</p>
+                    <p>{{ comentariu.continut }}</p>
+                    {% if comentariu.locatie %}
+                        <p><em>Locație: {{ comentariu.locatie }}</em></p>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <p>Nu există comentarii încă. Fii primul care comentează!</p>
+            {% endfor %}
+        </div>
+
+        <!-- Formular pentru comentarii -->
+        <div class="comments">
+            <form method="POST">
+                {% csrf_token %}
+                <textarea name="continut" rows="4" placeholder="Adaugă un comentariu"></textarea>
+                <input type="text" id="locatie" name="locatie" placeholder="Locație (opțional)">
+                <div id="map"></div>
+                <button type="submit">Adaugă comentariu</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let map;
+        let marker;
+
+        function initMap() {
+            const defaultLocation = { lat: 47.1585, lng: 27.6014 }; // Coordonatele Iasi
+            map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 13,
+                center: defaultLocation,
+            });
+
+            marker = new google.maps.Marker({
+                position: defaultLocation,
+                map: map,
+                draggable: true, // Permite mutarea markerului
+            });
+
+            // Actualizeaza input-ul de locatie cand markerul este mutat
+            google.maps.event.addListener(marker, 'dragend', function () {
+                const position = marker.getPosition();
+                document.getElementById('locatie').value = `${position.lat()}, ${position.lng()}`;
+            });
+        }
+
+        // Initializeaza harta la încarcarea paginii
+        window.onload = initMap;
+    </script>
+</body>
+</html>
